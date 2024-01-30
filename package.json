@@ -1,0 +1,23 @@
+{
+  "name": "bluetooth-api-chrome",
+  "version": "1.0.0",
+  "description": "Bluetooth API from Chrome to use on mobile devices",
+  "main": "index.html",
+  "scripts": {
+    "test": "npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j-art/bluetooth-api-chrome.git"
+  },
+  "keywords": [
+    "bluetooth",
+    "Chrome"
+  ],
+  "author": "Javier",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/j-art/bluetooth-api-chrome/issues"
+  },
+  "homepage": "https://github.com/j-art/bluetooth-api-chrome#readme"
+}
