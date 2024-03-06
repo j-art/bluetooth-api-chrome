@@ -1,19 +1,45 @@
 <html5>
-    <button>Connect</button>
+    <button id="connectBLE">Connect</button>
 </html5>
 <script>
-    let button = document.querySelector('button');
-    button.addEventListener('pointerup click touchend', function(event) {
+    let button = document.getElementById('connectBLE');
+    console.log(button);
+    button.addEventListener('pointerup', requestBLEDevices);
+    button.addEventListener('click', requestBLEDevices);
+    button.addEventListener('touchend', requestBLEDevices);
+
+    function requestBLEDevices(event) {
         navigator.bluetooth.requestDevice({
             filters: [{
-                name: 'TVS Engineering'
+                name: 'DONGLE BLE TWAI',
+                services: ['000000ff-0000-1000-8000-00805f9b34fb'] 
             }],
         }).then(device => {
             // Human-readable name of the device.
+            console.log(device);
             console.log(device.name);
 
             // Attempts to connect to remote GATT Server.
             return device.gatt.connect();
-        }).catch(error => { console.error(error); });
-    });
+        }).then(server => {
+            // Getting Battery Service…
+            return server.getPrimaryService('000000ff-0000-1000-8000-00805f9b34fb');
+        })
+        .then(service => {
+        // Getting Battery Level Characteristic…
+        return service.getCharacteristic('0000ff01-0000-1000-8000-00805f9b34fb');
+        })
+        .then(characteristic => characteristic.startNotifications())
+        .then(characteristic => {
+            characteristic.addEventListener('characteristicvaluechanged',
+                                  handleBLEValueChanged);
+        })
+        .catch(error => { console.error(error); });
+    }
+
+    function handleBLEValueChanged(event) {
+        console.log(event);
+        const BLEValue = event.target.value.getUint8(0);
+        console.log('BLE value ' + BLEValue);
+    }
 </script>
