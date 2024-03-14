@@ -1,20 +1,38 @@
 <html5>
     <button id="connectBLE">Connect</button>
+    <button id="stopNotifications">Stop notifications</button>
+    <div>
+        <input type="text" id="message" value="12382345678634567896X">
+        <button id="sendMessage">Write message</button>
+    </div>
 </html5>
 <script>
-    let button = document.getElementById('connectBLE');
-    console.log(button);
-    button.addEventListener('pointerup', requestBLEDevices);
-    button.addEventListener('click', requestBLEDevices);
-    button.addEventListener('touchend', requestBLEDevices);
+    let buttonConnect = document.getElementById('connectBLE');
+    let buttonStop = document.getElementById('connectBLE');
+    let buttonSend = document.getElementById('sendMessage');
+
+    buttonConnect.addEventListener('pointerup', requestBLEDevices);
+    buttonConnect.addEventListener('click', requestBLEDevices);
+    buttonConnect.addEventListener('touchend', requestBLEDevices);
+
+    buttonStop.addEventListener('pointerup', onStopButtonClick);
+    buttonStop.addEventListener('click', onStopButtonClick);
+    buttonStop.addEventListener('touchend', onStopButtonClick);
+
+    buttonSend.addEventListener('pointerup', onWriteButtonClick);
+    buttonSend.addEventListener('click', onWriteButtonClick);
+    buttonSend.addEventListener('touchend', onWriteButtonClick);
+
+    let myCharacteristic;
 
     function requestBLEDevices(event) {
         navigator.bluetooth.requestDevice({
             filters: [{
                 name: 'DONGLE BLE TWAI',
-                services: ['000000ff-0000-1000-8000-00805f9b34fb'] 
+                services: ['000000ff-0000-1000-8000-00805f9b34fb']
             }],
         }).then(device => {
+            console.log('Connecting to GATT Server...');
             // Human-readable name of the device.
             console.log(device);
             console.log(device.name);
@@ -22,24 +40,52 @@
             // Attempts to connect to remote GATT Server.
             return device.gatt.connect();
         }).then(server => {
-            // Getting Battery Service…
+            console.log('Getting Service...');
+            // Getting Service…
             return server.getPrimaryService('000000ff-0000-1000-8000-00805f9b34fb');
+        }).then(service => {
+            console.log('Getting Characteristic...');
+            // Getting Battery Level Characteristic…
+            return service.getCharacteristic('0000ff01-0000-1000-8000-00805f9b34fb');
+        }).then(characteristic => {
+            myCharacteristic = characteristic;
+            console.log(myCharacteristic);
+            return characteristic.startNotifications().then(_ => {
+                console.log('> Notifications started');
+                characteristic.addEventListener('characteristicvaluechanged',
+                    handleBLEValueChanged);
+            })
         })
-        .then(service => {
-        // Getting Battery Level Characteristic…
-        return service.getCharacteristic('0000ff01-0000-1000-8000-00805f9b34fb');
-        })
-        .then(characteristic => characteristic.startNotifications())
-        .then(characteristic => {
-            characteristic.addEventListener('characteristicvaluechanged',
-                                  handleBLEValueChanged);
-        })
-        .catch(error => { console.error(error); });
+        .catch(error => { console.error("Error: ",error); });
+    }
+
+    function onStopButtonClick() {
+        if (myCharacteristic) {
+            myCharacteristic.stopNotifications().then(_ => {
+                log('> Notifications stopped');
+                myCharacteristic.removeEventListener('characteristicvaluechanged', handleBLEValueChanged);
+            }).catch(error => { console.error("Error: ",error); });
+        }
+    }
+
+    function onWriteButtonClick() {
+        if (myCharacteristic) {
+            let encoder = new TextEncoder('utf-8');
+            let value = encoder.encode(document.getElementById("message").value);
+            myCharacteristic.writeValue(value).then(_ => {
+                console.log('> Writed value: ', value);
+            })
+            .catch(error => { console.error("Error: ", error); });
+        }
     }
 
     function handleBLEValueChanged(event) {
-        console.log(event);
-        const BLEValue = event.target.value.getUint8(0);
-        console.log('BLE value ' + BLEValue);
+        console.log("Received message: ", event.target.value);
+        let value = event.target.value;
+        let message = [];
+        for (let i = 0; i < value.byteLength; i++) {
+            message.push(String.fromCharCode(value.getUint8(i)));
+        }
+        console.log('decoded message > ' + message.join(""));
     }
 </script>
