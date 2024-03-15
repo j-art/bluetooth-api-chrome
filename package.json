@@ -4,7 +4,8 @@
   "description": "Bluetooth API from Chrome to use on mobile devices",
   "main": "index.html",
   "scripts": {
-    "test": "npm run dev"
+    "test": "npm run dev",
+    "dev": "nodemon run server.js"
   },
   "repository": {
     "type": "git",
