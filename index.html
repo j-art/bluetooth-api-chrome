@@ -2,14 +2,29 @@
     <button id="connectBLE">Connect</button>
     <button id="stopNotifications">Stop notifications</button>
     <div>
-        <input type="text" id="message" value="12382345678634567896X">
+        <label for="message">Msg to Send: </label>
+        <input type="text" id="message" value="72382345678634567896X">
         <button id="sendMessage">Write message</button>
+        <label>Qty sent: </label>
+        <div id="countSent" style="background-color: rgb(80, 79, 79);color: aliceblue; min-width: 100px;min-height: 15px;display: inline-block;padding: 5px;">#</div>
+    </div>
+    <div>
+        <label for="sendQty">Send Quantity: </label>
+        <input type="text" id="sendQty" value="1000">
+    </div>
+    <div>
+        <label for="receivedMsg">Received Message: </label>
+        <div id="receivedMsg" style="background-color: black;color: aliceblue; min-width: 100px;min-height: 15px;display: inline-block;padding: 5px;">Received message</div>
+        <label>Qty received: </label>
+        <div id="countReceived" style="background-color: rgb(80, 79, 79);color: aliceblue; min-width: 100px;min-height: 15px;display: inline-block;padding: 5px;">#</div>
+        <button onclick="clearCounters()">Clear counters</button>
     </div>
 </html5>
 <script>
     let buttonConnect = document.getElementById('connectBLE');
     let buttonStop = document.getElementById('connectBLE');
     let buttonSend = document.getElementById('sendMessage');
+    let countReceived = 0;
 
     buttonConnect.addEventListener('pointerup', requestBLEDevices);
     buttonConnect.addEventListener('click', requestBLEDevices);
@@ -26,6 +41,7 @@
     let myCharacteristic;
 
     function requestBLEDevices(event) {
+        event.stopPropagation();
         navigator.bluetooth.requestDevice({
             filters: [{
                 name: 'DONGLE BLE TWAI',
@@ -66,16 +82,24 @@
                 myCharacteristic.removeEventListener('characteristicvaluechanged', handleBLEValueChanged);
             }).catch(error => { console.error("Error: ",error); });
         }
-    }
+    };
 
     function onWriteButtonClick() {
+        event.stopPropagation();
         if (myCharacteristic) {
             let encoder = new TextEncoder('utf-8');
             let value = encoder.encode(document.getElementById("message").value);
-            myCharacteristic.writeValue(value).then(_ => {
-                console.log('> Writed value: ', value);
-            })
-            .catch(error => { console.error("Error: ", error); });
+            let sendQty = parseInt(document.getElementById("sendQty").value);
+            let i = 0;
+            const interval = setInterval(() => {
+                myCharacteristic.writeValueWithoutResponse(value).then(_ => {
+                    console.log('> Writed value: ', value);
+                })
+                .catch(error => { console.error("Error: ", error); });
+                i++;
+                document.getElementById("countSent").innerHTML = i+1;
+                i == sendQty-1 && clearInterval(interval);
+            }, 1);
         }
     }
 
@@ -86,6 +110,15 @@
         for (let i = 0; i < value.byteLength; i++) {
             message.push(String.fromCharCode(value.getUint8(i)));
         }
+        document.getElementById("receivedMsg").innerHTML = message.join("");
         console.log('decoded message > ' + message.join(""));
+        countReceived++;
+        document.getElementById("countReceived").innerHTML = countReceived;
+    }
+
+    function clearCounters(event) {
+        countReceived = 0;
+        document.getElementById("countReceived").innerHTML = countReceived;
+        document.getElementById("countSent").innerHTML = 0;
     }
 </script>
