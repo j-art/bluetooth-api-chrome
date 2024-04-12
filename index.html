@@ -34,9 +34,9 @@
     buttonStop.addEventListener('click', onStopButtonClick);
     buttonStop.addEventListener('touchend', onStopButtonClick);
 
-    buttonSend.addEventListener('pointerup', onWriteButtonClick);
+    //buttonSend.addEventListener('pointerup', onWriteButtonClick);
     buttonSend.addEventListener('click', onWriteButtonClick);
-    buttonSend.addEventListener('touchend', onWriteButtonClick);
+    //buttonSend.addEventListener('touchend', onWriteButtonClick);
 
     let myCharacteristic;
 
@@ -92,13 +92,10 @@
             let sendQty = parseInt(document.getElementById("sendQty").value);
             let i = 0;
             const interval = setInterval(() => {
-                myCharacteristic.writeValueWithoutResponse(value).then(_ => {
-                    console.log('> Writed value: ', value);
-                })
-                .catch(error => { console.error("Error: ", error); });
+                myCharacteristic.writeValueWithoutResponse(value);
                 i++;
-                document.getElementById("countSent").innerHTML = i+1;
-                i == sendQty-1 && clearInterval(interval);
+                document.getElementById("countSent").innerHTML = i;
+                i == sendQty && clearInterval(interval);
             }, 1);
         }
     }
