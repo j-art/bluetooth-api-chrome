@@ -44,8 +44,10 @@
         event.stopPropagation();
         navigator.bluetooth.requestDevice({
             filters: [{
-                name: 'DONGLE BLE TWAI',
+                name: 'DONGLE BLE TWAI', 
                 services: ['000000ff-0000-1000-8000-00805f9b34fb']
+                //FOR NIMBLE EXAMPLE
+                //services: ['0000abf0-0000-1000-8000-00805f9b34fb']
             }],
         }).then(device => {
             console.log('Connecting to GATT Server...');
@@ -59,10 +61,14 @@
             console.log('Getting Service...');
             // Getting Service…
             return server.getPrimaryService('000000ff-0000-1000-8000-00805f9b34fb');
+            //FOR NIMBLE EXAMPLE
+            //return server.getPrimaryService('0000abf0-0000-1000-8000-00805f9b34fb');
         }).then(service => {
             console.log('Getting Characteristic...');
             // Getting Battery Level Characteristic…
             return service.getCharacteristic('0000ff01-0000-1000-8000-00805f9b34fb');
+            //FOR NIMBLE EXAMPLE
+            //return service.getCharacteristic('0000abf1-0000-1000-8000-00805f9b34fb');
         }).then(characteristic => {
             myCharacteristic = characteristic;
             console.log(myCharacteristic);
@@ -88,15 +94,38 @@
         event.stopPropagation();
         if (myCharacteristic) {
             let encoder = new TextEncoder('utf-8');
+            let valueInit = encoder.encode("62382345678634567896X");
+            let valueEnd = encoder.encode("52382345678634567896X");
             let value = encoder.encode(document.getElementById("message").value);
             let sendQty = parseInt(document.getElementById("sendQty").value);
             let i = 0;
-            const interval = setInterval(() => {
-                myCharacteristic.writeValueWithoutResponse(value);
+
+            (async function myRecursiveTask() {
+                // Do your task here
+                const startTime = performance.now();
                 i++;
+                if(i > sendQty) return;
+
                 document.getElementById("countSent").innerHTML = i;
-                i == sendQty && clearInterval(interval);
-            }, 1);
+                if(sendQty == 1000) {
+                    if(i <= 5){
+                        await myCharacteristic.writeValueWithoutResponse(valueInit);
+                    }else if(i > 995){
+                        await myCharacteristic.writeValueWithoutResponse(valueEnd)
+                    }else{
+                        await myCharacteristic.writeValueWithoutResponse(value);
+                    }
+                }else{
+                    await myCharacteristic.writeValueWithoutResponse(value);
+                }
+                const endTime = performance.now();
+                const elapsedTime = endTime - startTime;
+
+                //console.log(`Execution time: ${elapsedTime} milliseconds`);
+                if (i <= sendQty) {
+                    setTimeout(myRecursiveTask, 1); // 1ms loop
+                }
+            }());
         }
     }
 
