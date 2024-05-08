@@ -3,14 +3,14 @@
     <button id="stopNotifications">Stop notifications</button>
     <div>
         <label for="message">Msg to Send: </label>
-        <input type="text" id="message" value="72382345678634567896X">
+        <input type="text" id="message" value="72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X72382345678634567896X">
         <button id="sendMessage">Write message</button>
         <label>Qty sent: </label>
         <div id="countSent" style="background-color: rgb(80, 79, 79);color: aliceblue; min-width: 100px;min-height: 15px;display: inline-block;padding: 5px;">#</div>
     </div>
     <div>
         <label for="sendQty">Send Quantity: </label>
-        <input type="text" id="sendQty" value="1000">
+        <input type="text" id="sendQty" value="100">
     </div>
     <div>
         <label for="receivedMsg">Received Message: </label>
@@ -100,9 +100,10 @@
             let sendQty = parseInt(document.getElementById("sendQty").value);
             let i = 0;
 
+            // Do your task here
+            let startTime = performance.now();
+
             (async function myRecursiveTask() {
-                // Do your task here
-                const startTime = performance.now();
                 i++;
                 if(i > sendQty) return;
 
@@ -121,9 +122,11 @@
                 const endTime = performance.now();
                 const elapsedTime = endTime - startTime;
 
-                //console.log(`Execution time: ${elapsedTime} milliseconds`);
+                startTime = performance.now();
+
+                console.log(`Execution time: ${elapsedTime} milliseconds`);
                 if (i <= sendQty) {
-                    setTimeout(myRecursiveTask, 1); // 1ms loop
+                    setTimeout(myRecursiveTask, 3); // 1ms loop
                 }
             }());
         }
@@ -136,10 +139,16 @@
         for (let i = 0; i < value.byteLength; i++) {
             message.push(String.fromCharCode(value.getUint8(i)));
         }
+        let joinMessage = message.join("");
         document.getElementById("receivedMsg").innerHTML = message.join("");
-        console.log('decoded message > ' + message.join(""));
-        countReceived++;
-        document.getElementById("countReceived").innerHTML = countReceived;
+        //console.log('decoded message > ' + message.join(""));
+        let messages = message.split("X");
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i] != "") {
+                countReceived++;
+                document.getElementById("countReceived").innerHTML = countReceived;
+            }
+        }
     }
 
     function clearCounters(event) {
